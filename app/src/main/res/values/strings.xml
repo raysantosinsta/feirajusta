@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">FeiraJusta</string>
+    <string name="hero_illustration_desc">Ilustração de economia em supermercado do FeiraJusta</string>
+    <string name="auth_badge_tagline">ECONOMIA INTELIGENTE</string>
+    <string name="auth_subtitle">Compare preços de supermercados, registre ofertas mesmo offline e compartilhe listas com sua família.</string>
+    <string name="auth_tab_login">Entrar</string>
+    <string name="auth_tab_signup">Criar conta</string>
+    <string name="sign_in_with_supabase">Entrar com Supabase</string>
+    <string name="sign_up_with_supabase">Criar conta no Supabase</string>
+    <string name="auth_supabase_hint">Use seu e-mail e senha cadastrados no Supabase para sincronizar preços e listas compartilhadas com a família.</string>
+    <string name="auth_supabase_missing_secrets">Configure SUPABASE_URL e SUPABASE_ANON_KEY no painel Secrets do AI Studio para ativar o login e a sincronização com o Supabase.</string>
+    <string name="nav_compare">Comparar</string>
+    <string name="nav_lists">Listas</string>
+    <string name="nav_register">Registrar</string>
+    <string name="nav_history">Histórico</string>
+    <string name="sign_out">Sair da conta</string>
+</resources>

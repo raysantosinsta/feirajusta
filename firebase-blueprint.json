@@ -1,0 +1,247 @@
+{
+  "entities": {
+    "Market": {
+      "title": "Market",
+      "description": "Supermercado ou estabelecimento cadastrado pelo usuário.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID do usuário proprietário do mercado."
+        },
+        "name": {
+          "type": "string",
+          "description": "Nome do estabelecimento."
+        },
+        "neighborhood": {
+          "type": "string",
+          "description": "Bairro ou região do estabelecimento."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de criação via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de atualização via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "name", "neighborhood", "createdAt", "updatedAt"]
+    },
+    "PriceRecord": {
+      "title": "PriceRecord",
+      "description": "Registro de preço de um produto em um supermercado específico.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID do usuário proprietário do registro."
+        },
+        "productName": {
+          "type": "string",
+          "description": "Nome do produto exibido na interface."
+        },
+        "normalizedName": {
+          "type": "string",
+          "description": "Nome normalizado para agrupamento e comparação entre mercados."
+        },
+        "brand": {
+          "type": "string",
+          "description": "Marca do produto."
+        },
+        "category": {
+          "type": "string",
+          "description": "Categoria do produto (Mercearia, Laticínios, etc.)."
+        },
+        "unitLabel": {
+          "type": "string",
+          "description": "Unidade ou peso do produto (ex.: 1 kg, 500 g, 1 L)."
+        },
+        "priceCents": {
+          "type": "integer",
+          "description": "Preço em centavos de Real (BRL)."
+        },
+        "marketId": {
+          "type": "string",
+          "description": "Identificador do mercado."
+        },
+        "marketName": {
+          "type": "string",
+          "description": "Nome do mercado no momento do registro."
+        },
+        "isPromo": {
+          "type": "boolean",
+          "description": "Indica se o preço é promocional."
+        },
+        "recordedAtMillis": {
+          "type": "integer",
+          "description": "Momento em que o preço foi observado no mercado (ms)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de criação via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de atualização via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "productName",
+        "normalizedName",
+        "brand",
+        "category",
+        "unitLabel",
+        "priceCents",
+        "marketId",
+        "marketName",
+        "isPromo",
+        "recordedAtMillis",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ShoppingList": {
+      "title": "ShoppingList",
+      "description": "Lista de compras colaborativa compartilhável com familiares.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "UID do criador da lista."
+        },
+        "memberUids": {
+          "type": "array",
+          "description": "Lista de UIDs com acesso à lista (máximo 15 membros)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Título da lista de compras."
+        },
+        "inviteCode": {
+          "type": "string",
+          "description": "Código curto de convite familiar."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de criação via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de atualização via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["ownerId", "memberUids", "title", "inviteCode", "createdAt", "updatedAt"]
+    },
+    "ShoppingListItem": {
+      "title": "ShoppingListItem",
+      "description": "Item pertencente a uma lista de compras familiar.",
+      "type": "object",
+      "properties": {
+        "listId": {
+          "type": "string",
+          "description": "ID da lista pai."
+        },
+        "productName": {
+          "type": "string",
+          "description": "Nome do item a comprar."
+        },
+        "normalizedName": {
+          "type": "string",
+          "description": "Nome normalizado para cruzar com os preços registrados."
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "Quantidade desejada."
+        },
+        "unitLabel": {
+          "type": "string",
+          "description": "Unidade de medida."
+        },
+        "checked": {
+          "type": "boolean",
+          "description": "Se o item já foi colocado no carrinho."
+        },
+        "addedByUid": {
+          "type": "string",
+          "description": "UID do membro que adicionou o item."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de criação via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de atualização via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "listId",
+        "productName",
+        "normalizedName",
+        "quantity",
+        "unitLabel",
+        "checked",
+        "addedByUid",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ListInvite": {
+      "title": "ListInvite",
+      "description": "Convite indexado pelo código para ingresso em lista familiar.",
+      "type": "object",
+      "properties": {
+        "listId": {
+          "type": "string",
+          "description": "ID da lista vinculada ao código."
+        },
+        "listTitle": {
+          "type": "string",
+          "description": "Título da lista para confirmação."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID do criador da lista."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de criação via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["listId", "listTitle", "ownerId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/markets/{marketId}": {
+      "schema": { "$ref": "#/entities/Market" },
+      "description": "Mercados cadastrados pelo usuário autenticado."
+    },
+    "/price_records/{recordId}": {
+      "schema": { "$ref": "#/entities/PriceRecord" },
+      "description": "Histórico e comparação de preços cadastrados pelo usuário."
+    },
+    "/shopping_lists/{listId}": {
+      "schema": { "$ref": "#/entities/ShoppingList" },
+      "description": "Listas de compras compartilhadas por família."
+    },
+    "/shopping_lists/{listId}/items/{itemId}": {
+      "schema": { "$ref": "#/entities/ShoppingListItem" },
+      "description": "Itens da lista de compras compartilhada."
+    },
+    "/list_invites/{inviteCode}": {
+      "schema": { "$ref": "#/entities/ListInvite" },
+      "description": "Lookup direto de convite por código único."
+    }
+  }
+}

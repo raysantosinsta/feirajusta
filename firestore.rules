@@ -1,0 +1,228 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isValidMarket(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 80 &&
+             data.neighborhood is string && data.neighborhood.size() <= 80;
+    }
+
+    function isValidPriceRecord(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.productName is string && data.productName.size() >= 1 && data.productName.size() <= 100 &&
+             data.normalizedName is string && data.normalizedName.size() >= 1 && data.normalizedName.size() <= 100 &&
+             data.brand is string && data.brand.size() <= 60 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 40 &&
+             data.unitLabel is string && data.unitLabel.size() >= 1 && data.unitLabel.size() <= 30 &&
+             data.priceCents is int && data.priceCents > 0 && data.priceCents <= 10000000 &&
+             data.marketId is string && data.marketId.size() >= 1 && data.marketId.size() <= 128 &&
+             data.marketName is string && data.marketName.size() >= 1 && data.marketName.size() <= 80 &&
+             data.isPromo is bool &&
+             data.recordedAtMillis is int && data.recordedAtMillis > 0;
+    }
+
+    function isValidShoppingList(data) {
+      return data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+             data.memberUids is list && data.memberUids.size() >= 1 && data.memberUids.size() <= 15 &&
+             data.memberUids[0] is string &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 80 &&
+             data.inviteCode is string && data.inviteCode.size() >= 4 && data.inviteCode.size() <= 20 &&
+             data.inviteCode.matches('^[A-Z0-9\\-]+$');
+    }
+
+    function isValidShoppingListItem(data) {
+      return data.listId is string && data.listId.size() >= 1 && data.listId.size() <= 128 &&
+             data.productName is string && data.productName.size() >= 1 && data.productName.size() <= 100 &&
+             data.normalizedName is string && data.normalizedName.size() >= 1 && data.normalizedName.size() <= 100 &&
+             data.quantity is int && data.quantity >= 1 && data.quantity <= 999 &&
+             data.unitLabel is string && data.unitLabel.size() >= 1 && data.unitLabel.size() <= 30 &&
+             data.checked is bool &&
+             data.addedByUid is string && data.addedByUid.size() >= 1 && data.addedByUid.size() <= 128;
+    }
+
+    function isValidListInvite(data) {
+      return data.listId is string && data.listId.size() >= 1 && data.listId.size() <= 128 &&
+             data.listTitle is string && data.listTitle.size() >= 1 && data.listTitle.size() <= 80 &&
+             data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128;
+    }
+
+    function isParentListMember(listId) {
+      return exists(/databases/$(database)/documents/shopping_lists/$(listId)) &&
+             request.auth.uid in get(/databases/$(database)/documents/shopping_lists/$(listId)).data.memberUids;
+    }
+
+    match /markets/{marketId} {
+      allow get: if isSignedIn() && isValidId(marketId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(marketId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'name', 'neighborhood', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'name', 'neighborhood', 'createdAt', 'updatedAt']) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       isValidMarket(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(marketId) &&
+                       isValidMarket(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['name', 'neighborhood', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(marketId) && existing().userId == request.auth.uid;
+    }
+
+    match /price_records/{recordId} {
+      allow get: if isSignedIn() && isValidId(recordId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(recordId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'productName', 'normalizedName', 'brand', 'category', 'unitLabel', 'priceCents', 'marketId', 'marketName', 'isPromo', 'recordedAtMillis', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'productName', 'normalizedName', 'brand', 'category', 'unitLabel', 'priceCents', 'marketId', 'marketName', 'isPromo', 'recordedAtMillis', 'createdAt', 'updatedAt']) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       isValidPriceRecord(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(recordId) &&
+                       isValidPriceRecord(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'productName', 'normalizedName', 'brand', 'category',
+                         'unitLabel', 'priceCents', 'marketId', 'marketName',
+                         'isPromo', 'recordedAtMillis', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(recordId) && existing().userId == request.auth.uid;
+    }
+
+    match /shopping_lists/{listId} {
+      allow get: if isSignedIn() && isValidId(listId) && request.auth.uid in existing().memberUids;
+      allow list: if isSignedIn() && request.auth.uid in existing().memberUids;
+
+      allow create: if isSignedIn() &&
+                       isValidId(listId) &&
+                       incoming().ownerId == request.auth.uid &&
+                       request.auth.uid in incoming().memberUids &&
+                       incoming().memberUids.size() == 1 &&
+                       incoming().keys().hasAll(['ownerId', 'memberUids', 'title', 'inviteCode', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['ownerId', 'memberUids', 'title', 'inviteCode', 'createdAt', 'updatedAt']) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       isValidShoppingList(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(listId) &&
+                       isValidShoppingList(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().inviteCode == existing().inviteCode &&
+                       isValidTimestamp(incoming().updatedAt) && (
+                         // Action 1: Owner renames list
+                         (existing().ownerId == request.auth.uid &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'updatedAt'])) ||
+                         // Action 2: Family member joins via inviteCode
+                         (!(request.auth.uid in existing().memberUids) &&
+                          request.auth.uid in incoming().memberUids &&
+                          incoming().memberUids.hasAll(existing().memberUids) &&
+                          incoming().memberUids.size() == existing().memberUids.size() + 1 &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'updatedAt']) &&
+                          exists(/databases/$(database)/documents/list_invites/$(existing().inviteCode)) &&
+                          get(/databases/$(database)/documents/list_invites/$(existing().inviteCode)).data.listId == listId) ||
+                         // Action 3: Non-owner member leaves list
+                         (request.auth.uid in existing().memberUids &&
+                          request.auth.uid != existing().ownerId &&
+                          !(request.auth.uid in incoming().memberUids) &&
+                          existing().memberUids.hasAll(incoming().memberUids) &&
+                          existing().memberUids.size() == incoming().memberUids.size() + 1 &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'updatedAt']))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(listId) && existing().ownerId == request.auth.uid;
+
+      match /items/{itemId} {
+        allow get: if isSignedIn() && isValidId(listId) && isValidId(itemId) && isParentListMember(listId);
+        allow list: if isSignedIn() && isValidId(listId) && isParentListMember(listId);
+
+        allow create: if isSignedIn() &&
+                         isValidId(listId) &&
+                         isValidId(itemId) &&
+                         isValidShoppingListItem(incoming()) &&
+                         incoming().listId == listId &&
+                         incoming().addedByUid == request.auth.uid &&
+                         incoming().keys().hasAll(['listId', 'productName', 'normalizedName', 'quantity', 'unitLabel', 'checked', 'addedByUid', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['listId', 'productName', 'normalizedName', 'quantity', 'unitLabel', 'checked', 'addedByUid', 'createdAt', 'updatedAt']) &&
+                         isValidTimestamp(incoming().createdAt) &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         isParentListMember(listId);
+
+        allow update: if isSignedIn() &&
+                         isValidId(listId) &&
+                         isValidId(itemId) &&
+                         isValidShoppingListItem(incoming()) &&
+                         incoming().listId == existing().listId &&
+                         incoming().addedByUid == existing().addedByUid &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         isParentListMember(listId) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'productName', 'normalizedName', 'quantity', 'unitLabel', 'checked', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(listId) && isValidId(itemId) && isParentListMember(listId);
+      }
+    }
+
+    match /list_invites/{inviteCode} {
+      allow get: if isSignedIn() && isValidId(inviteCode);
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+                       isValidId(inviteCode) &&
+                       incoming().ownerId == request.auth.uid &&
+                       incoming().keys().hasAll(['listId', 'listTitle', 'ownerId', 'createdAt']) &&
+                       incoming().keys().hasOnly(['listId', 'listTitle', 'ownerId', 'createdAt']) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidListInvite(incoming()) &&
+                       existsAfter(/databases/$(database)/documents/shopping_lists/$(incoming().listId)) &&
+                       getAfter(/databases/$(database)/documents/shopping_lists/$(incoming().listId)).data.ownerId == request.auth.uid;
+
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(inviteCode) && existing().ownerId == request.auth.uid;
+    }
+  }
+}
