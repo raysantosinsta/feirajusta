@@ -4,6 +4,11 @@ Documentação técnica e funcional completa do aplicativo Android **FeiraJusta*
 
 ---
 
+## 0. Apresentação
+
+https://lnkd.in/p/dXWCc_wr
+
+
 ## 1. Visão Geral
 
 O **FeiraJusta** ajuda consumidores e famílias a economizarem nas compras de supermercado por meio de quatro pilares integrados:
